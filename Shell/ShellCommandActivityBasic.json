@@ -1,0 +1,34 @@
+{
+  "objects": [
+    {
+      "subnetId": "<SubnetId_Here>",
+      "instanceType": "t2.micro",
+      "name": "EC2ResourceObj",
+      "keyPair": "<SSH_KeyPair_Here>",
+      "id": "EC2ResourceObj",
+      "type": "Ec2Resource",
+      "terminateAfter": "30 Minutes<Or_Desired_Value>",
+      "initTimeout":"2 Minutes"
+    },
+    {
+      "failureAndRerunMode": "CASCADE",
+      "resourceRole": "DataPipelineDefaultResourceRole",
+      "role": "DataPipelineDefaultRole",
+      "pipelineLogUri": "s3://<logbucket>/datapipeline/",
+      "scheduleType": "ONDEMAND",
+      "name": "Default",
+      "id": "Default",
+      "maxActiveInstances":3
+    },
+    {
+      "stage": "false",
+      "scriptUri": "s3://<mybucket>/path/to/shellscript.sh",
+      "name": "ShellCommandActivityObj",
+      "id": "ShellCommandActivityObj",
+      "runsOn": {
+        "ref": "EC2ResourceObj"
+      },
+      "type": "ShellCommandActivity"
+    }
+  ]
+}
