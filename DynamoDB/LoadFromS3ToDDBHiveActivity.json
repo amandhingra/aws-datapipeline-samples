@@ -1,0 +1,55 @@
+
+  "objects": [
+    {
+      "name": "DefaultDataNode2",
+      "id": "DataNodeId_output",
+      "type": "DynamoDBDataNode",
+      "region": "<RegionName_Here>",
+      "tableName": "<TableName_Here>"
+    },
+    {
+      "subnetId": "<SubnetId_Here>",
+      "enableDebugging": "true",
+      "name": "EmrClusterForHiveActivity",
+      "coreInstanceType": "m4.large",
+      "coreInstanceCount": "1",
+      "keyPair": "<SSH_KeyPair_Here>",
+      "masterInstanceType": "m4.xlarge",
+      "releaseLabel": "emr-5.23.0",
+      "id": "EmrClusterId_xxx",
+      "type": "EmrCluster"
+    },
+    {
+      "output": {
+        "ref": "DataNodeId_output"
+      },
+      "input": {
+        "ref": "DataNodeId_input"
+      },
+      "stage": "false",
+      "scriptUri": "s3://<mybucket>/path/to/json_to_ddb.q",
+      "name": "ImportActivity",
+      "runsOn": {
+        "ref": "EmrClusterId_xxx"
+      },
+      "id": "HiveActivityId",
+      "type": "HiveActivity"
+    },
+    {
+      "failureAndRerunMode": "CASCADE",
+      "resourceRole": "DataPipelineDefaultResourceRole",
+      "role": "DataPipelineDefaultRole",
+      "pipelineLogUri": "s3://<logbucket>/datapipeline/",
+      "scheduleType": "ONDEMAND",
+      "name": "Default",
+      "id": "Default"
+    },
+    {
+      "directoryPath": "s3://<mybucket>/input/path/",
+      "name": "DefaultDataNode1",
+      "id": "DataNodeId_input",
+      "type": "S3DataNode"
+    }
+  ],
+  "parameters": []
+}
