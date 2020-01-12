@@ -1,0 +1,139 @@
+    {
+      "objects": [
+        {
+          "connectionString": "jdbc:mysql://<RDS_Cluster_Endpoint_Here>:3306/<DbName_Here>",
+          "*password": "#{*myRDSPassword}",
+          "name": "MyJdbcDatabase",
+          "jdbcProperties": "allowMultiQueries=true",
+          "id": "MyJdbcDatabase",
+          "type": "JdbcDatabase",
+          "jdbcDriverClass": "com.mysql.jdbc.Driver",
+          "username": "#{myRDSUsername}"
+        },
+        {
+          "database": {
+            "ref": "MyJdbcDatabase"
+          },
+          "name": "DestinationRDSTable",
+          "insertQuery": "#{myRDSTableInsertSql}",
+          "id": "DestinationRDSTable",
+          "type": "SqlDataNode",
+          "table": "#{myRDSTableName}",
+          "selectQuery": "select * from #{table}"
+        },
+        {
+          "name": "DataFormat1",
+          "id": "DataFormat1",
+          "type": "CSV"
+        },
+        {
+          "subnetId": "<SubnetId_Here>",
+          "instanceType": "m4.large",
+          "name": "Ec2Instance",
+          "actionOnTaskFailure": "terminate",
+          "associatePublicIpAddress": "true",
+          "keyPair": "<SSH_Keypair_For_RealTime_Debugging>",
+          "id": "Ec2Instance",
+          "type": "Ec2Resource",
+          "terminateAfter": "<2 Hours(Or_Equivalent_Value)>"
+        },
+        {
+          "failureAndRerunMode": "CASCADE",
+          "resourceRole": "DataPipelineDefaultResourceRole",
+          "role": "DataPipelineDefaultRole",
+          "pipelineLogUri": "s3://<logbucket>/datapipeline/",
+          "scheduleType": "ONDEMAND",
+          "name": "Default",
+          "id": "Default"
+        },
+        {
+          "directoryPath": "#{myInputS3Loc}",
+          "dataFormat": {
+            "ref": "DataFormat1"
+          },
+          "name": "S3InputDataLocation",
+          "id": "S3InputDataLocation",
+          "type": "S3DataNode"
+        },
+        {
+          "output": {
+            "ref": "DestinationRDSTable"
+          },
+          "input": {
+            "ref": "S3InputDataLocation"
+          },
+          "database": {
+            "ref": "MyJdbcDatabase"
+          },
+          "scriptUri": "s3://<mybucket>/path/to/aurora_mysql_sqlactivity.q",
+          "name": "SqlActivity",
+          "runsOn": {
+            "ref": "Ec2Instance"
+          },
+          "id": "SqlActivityId_Nt534",
+          "type": "SqlActivity"
+        }
+      ],
+      "parameters": [
+        {
+          "description": "RDS MySQL password",
+          "id": "*myRDSPassword",
+          "type": "String"
+        },
+        {
+          "watermark": "security group name",
+          "helpText": "The names of one or more EC2 security groups that have access to the RDS MySQL cluster.",
+          "description": "RDS MySQL security group(s)",
+          "isArray": "true",
+          "optional": "true",
+          "id": "myEc2RdsSecurityGrps",
+          "type": "String"
+        },
+        {
+          "description": "RDS MySQL username",
+          "id": "myRDSUsername",
+          "type": "String"
+        },
+        {
+          "description": "Input S3 file path",
+          "id": "myInputS3Loc",
+          "type": "AWS::S3::ObjectKey"
+        },
+        {
+          "helpText": "The SQL statement to insert data into the RDS MySQL table.",
+          "watermark": "INSERT INTO #{table} (col1, col2, col3) VALUES(?, ?, ?) ;",
+          "description": "Insert SQL query",
+          "id": "myRDSTableInsertSql",
+          "type": "String"
+        },
+        {
+          "helpText": "The name of an existing table or a new table that will be created based on the create table SQL query parameter below.",
+          "description": "RDS MySQL table name",
+          "id": "myRDSTableName",
+          "type": "String"
+        },
+        {
+          "watermark": "CREATE TABLE pet IF NOT EXISTS (name VARCHAR(20), owner VARCHAR(20), species VARCHAR(20), gender CHAR(1), birth DATE, death DATE);",
+          "helpText": "The idempotent SQL statement to create the RDS MySQL table if it does not already exist.",
+          "description": "Create table SQL query",
+          "optional": "true",
+          "id": "myRDSCreateTableSql",
+          "type": "String"
+        },
+        {
+          "watermark": "DB Instance",
+          "description": "RDS Instance ID",
+          "id": "myRDSInstanceId",
+          "type": "String"
+        }
+      ],
+      "values": {
+        "myRDSInstanceId": "<DbInstanceId>",
+        "myRDSUsername": "<DbUsername>",
+        "myRDSTableInsertSql": "Insert into #{table} (a,b,c,d,e) values (?,?,?,?,?);",
+        "*myRDSPassword": "xxxxx",
+        "myEc2RdsSecurityGrps": "\"<Security_Group_Id_Here>\"",
+        "myInputS3Loc": "s3://<inputbucket>/mytext.csv",
+        "myRDSTableName": "<DbName>.<TableName>"
+      }
+    }
