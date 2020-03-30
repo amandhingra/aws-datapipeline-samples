@@ -1,0 +1,122 @@
+{
+  "objects": [
+    {
+      "databaseName": "#{myDatabaseName}",
+      "*password": "#{*myRDSPassword}",
+      "name": "AuroraMySQLDatabase",
+      "id": "DatabaseId_pdaOM",
+      "type": "RdsDatabase",
+      "rdsInstanceId": "#{myRDSInstanceId}",
+      "username": "#{myDbUsername}"
+    },
+    {
+      "database": {
+        "ref": "DatabaseId_pdaOM"
+      },
+      "name": "SelectSTARSqlActivity",
+      "id": "SqlActivityId_BUOM4",
+      "runsOn": {
+        "ref": "ResourceId_7DSgL"
+      },
+      "type": "SqlActivity",
+      "scriptUri": "#{mySqlScriptPathS3}"
+    },
+    {
+      "failureAndRerunMode": "CASCADE",
+      "resourceRole": "DataPipelineDefaultResourceRole",
+      "role": "DataPipelineDefaultRole",
+      "pipelineLogUri": "#{myPipelineLogS3Path}",
+      "scheduleType": "ONDEMAND",
+      "name": "Default",
+      "id": "Default"
+    },
+    {
+      "dependsOn": {
+        "ref": "SqlActivityId_BUOM4"
+      },
+      "name": "WAITShellCommandActivity",
+      "id": "ShellCommandActivityId_NOliZ",
+      "runsOn": {
+        "ref": "ResourceId_7DSgL"
+      },
+      "type": "ShellCommandActivity",
+      "command": "set -x && echo \"Just waiting for logs to be pushed by TaskRunner\" && sleep 5m"
+    },
+    {
+      "subnetId": "#{mySubnetId}",
+      "resourceRole": "DataPipelineDefaultResourceRole",
+      "role": "DataPipelineDefaultRole",
+      "securityGroupIds": "#{mySecurityGroupId}",
+      "instanceType": "t2.micro",
+      "name": "EC2ResourceForSqlActivity",
+      "id": "ResourceId_7DSgL",
+      "type": "Ec2Resource"
+    }
+  ],
+  "parameters": [
+    {
+      "description": "RDS MySQL password",
+      "id": "*myRDSPassword",
+      "type": "String"
+    },
+    {
+      "helpText": "The name of an existing table or a new table that will be created based on the create table SQL query parameter below.",
+      "description": "RDS MySQL table name",
+      "id": "myRDSTableName",
+      "type": "String"
+    },
+    {
+      "helpText":"SecurityGroupId here",
+      "description": "SecurityGroup Id for EC2Resource",
+      "id": "mySecurityGroupId",
+      "type": "String"
+    },
+    {
+      "helpText":"SubnetId here",
+      "description": "SubnetId",
+      "id": "mySubnetId",
+      "type": "String"
+    },
+    {
+      "watermark": "DB Instance",
+      "description": "RDS Instance ID",
+      "id": "myRDSInstanceId",
+      "type": "String"
+    },
+    {
+      "watermark": "databaseName",
+      "description": "RDS Database name",
+      "id": "myDatabaseName",
+      "type": "String"
+    },
+    {
+      "watermark": "DB Username",
+      "description": "Databse username",
+      "id": "myDbUsername",
+      "type": "String"
+    },
+    {
+      "watermark": "s3://aws-logs.... Path",
+      "description": "S3 Path for Pipeline Logs",
+      "id": "myPipelineLogS3Path",
+      "type": "AWS::S3::ObjectKey"
+    },
+    {
+      "watermark": "s3://mybucket/path/to/myscript.sql which has SELECT * \n FROM #{database.databaseName}.#{myRDSTableName} \n LIMIT 5;",
+      "description": "S3 Path for Sql Script",
+      "id": "mySqlScriptPathS3",
+      "type": "AWS::S3::ObjectKey"
+    }
+  ],
+  "values": {
+    "myRDSInstanceId": "",
+    "*myRDSPassword": "",
+    "myRDSTableName": "",
+    "mySecurityGroupId":"",
+    "mySubnetId":"",
+    "myDatabaseName":"",
+    "myDbUsername":"",
+    "myPipelineLogS3Path":"",
+    "mySqlScriptPathS3":""
+  }
+}
